@@ -1,18 +1,16 @@
 <?php
-include_once "C:\laragon\www\Mini\DAO\DAO.php";
 
+require_once __DIR__ . '/../DAO/DAO.php';
 
 class Produit{
     private $reference;
     private $libelle;
-    private $prixUni;
+    private $prix;
     private $quantite;
     private $prixAchat;
     private $image;
     private $cat;
     private $dao;
-
-
 
     function __construct($r,$l,$p,$q,$a,$i,$c){
         $this->reference = $r;

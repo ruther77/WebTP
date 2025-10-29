@@ -1,5 +1,5 @@
 <?php
-require_once "ligne.php";
+require_once __DIR__ . '/ligne.php';
 
 class LigneCmd extends Ligne{
 
