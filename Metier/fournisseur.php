@@ -1,7 +1,5 @@
 <?php
-include_once "../../DAO/DAO.php";
-
-require_once "personne.php";
+require_once __DIR__ . '/personne.php';
 
 class Fournisseur extends Personne{
 

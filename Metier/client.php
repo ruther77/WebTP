@@ -1,6 +1,6 @@
 <?php
 
-require_once "personne.php";
+require_once __DIR__ . '/personne.php';
 
 class Client extends Personne{
 

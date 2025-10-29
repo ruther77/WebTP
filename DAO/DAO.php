@@ -1,477 +1,556 @@
 <?php
-// require("../Metier/client.php");
-function getPDO(){
-            return new PDO("mysql:host=localhost:3306;dbname=projet_gestion_stock", "root", "");
-        
-        }   
-    class DAO{
 
-        function getPDO(){
-            return new PDO("mysql:host=localhost:3306;dbname=projet_gestion_stock", "root", "");
-        
-        }   
+declare(strict_types=1);
 
-        function authentification($login, $password){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM administrateurs WHERE login = ? AND password = ?");
-            $stmt->execute(array($login,$password));
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                $_GET=$row;
-                return 1;
-            }else return 0;
-        }
+class DAO
+{
+    private \PDO $pdo;
 
-        function executeQuery($sql){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare($sql);
-            $stmt->execute();
-            $clients=[];
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                $clients[]=$row;
-            }
-            return $clients;
-        }
-
-
-//CLIENT////////
-
-        function ajouterClient($obj){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("INSERT INTO client(nom,adresse,telephone,email) VALUES(?,?,?,?)");
-            $stmt->execute(array($obj->get("n"),$obj->get("a"),$obj->get("t"),$obj->get("e")));
-            //header("location:../Presentation/afficherClients.php");
-        }
-
-        function afficherClient(){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM client");
-            $stmt->execute();
-            $clients=[];
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                $cli=new Client($nom,$adresse,$telephone,$email);
-                $cli->setId($idClient);
-                $clients[]=$cli;
-            }
-            return $clients;
-        }
-
-        static function getClient($id){
-            $pdo=getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM client where idClient=?;");
-            $stmt->execute(array($id));
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return new Client($nom,$adresse,$telephone,$email);
-            }
-            return null;
-        }
-
-        function getClientTotal(){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("SELECT count(*) as number FROM client;");
-            $stmt->execute();
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return $number;
-            }
-            return 0;
-        }
-
-        function updateClient($obj){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("UPDATE client SET nom=?,adresse=?,telephone=?,email=? where idClient=?; ");
-            $stmt->execute(array($obj->get("n"),$obj->get("a"),$obj->get("t"),$obj->get("e"),$obj->get("i")));
-        }
-
-        static function deleteClient($id){
-            $pdo=getPDO();
-            $stmt=$pdo->prepare("DELETE FROM client where idClient=?; ");
-            $stmt->execute(array($id));
-        }
-
-//FOURNISSEUR////////
-
-        function ajouterFournisseur($obj){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("INSERT INTO fournisseur(nom,adresse,telephone,email) VALUES(?,?,?,?)");
-            $stmt->execute(array($obj->get("n"),$obj->get("a"),$obj->get("t"),$obj->get("e")));
-            //header("location:../Presentation/afficherClients.php");
-        }
-
-        function afficherFournisseur(){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM fournisseur");
-            $stmt->execute();
-            $forn=[];
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                $cli=new Fournisseur($nom,$adresse,$telephone,$email);
-                $cli->setId($idFournisseur);
-                $forn[]=$cli;
-            }
-            return $forn;
-        }
-
-        static function getFournisseur($id){
-            $pdo=getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM fournisseur where idFournisseur=?;");
-            $stmt->execute(array($id));
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return new Fournisseur($nom,$adresse,$telephone,$email);
-            }
-            return null;
-        }
-
-        function updateFournisseur($obj){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("UPDATE fournisseur SET nom=?,adresse=?,telephone=?,email=? where idFournisseur=?; ");
-            $stmt->execute(array($obj->get("n"),$obj->get("a"),$obj->get("t"),$obj->get("e"),$obj->get("i")));
-        }
-
-        function deleteFournisseur($id){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("DELETE FROM fournisseur where idFournisseur=?; ");
-            $stmt->execute(array($id));
-        }
-
-//PRODUIT///////////
-
-        function ajouterProduit($obj){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("INSERT INTO produit(reference,libelle,prixUnitaire,quantiteStock,prixAchat,image,idCategorie) VALUES(?,?,?,?,?,?,?)");
-            $stmt->execute(array($obj->get("r"),$obj->get("l"),$obj->get("p"),$obj->get("q"),$obj->get("a"),$obj->get("i"),$obj->get("c")));
-            header("location:../Presentation/Produit/afficherProduits.php");
-        }
-
-        function afficherProduits(){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM produit natural join categorie");
-            $stmt->execute();
-            $produits=[];
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                $produits[]=new Produit($reference,$libelle,$prixUnitaire,$quantiteStock,$prixAchat,$image,$nomCategorie);
-            }
-            return $produits;
-        }
-
-        static function afficherProduitsByCat($cat){
-            $pdo = getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM produit natural join categorie where idCategorie='$cat'");
-            $stmt->execute();
-            $produits=[];
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                $produits[]=new Produit($reference,$libelle,$prixUnitaire,$quantiteStock,$prixAchat,$image,$nomCategorie,$idCategorie);
-            }
-            return $produits;
-        }
-
-        static function getProduit($ref){
-            $pdo = getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM produit where reference=?;");
-            $stmt->execute(array($ref));
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return new Produit($reference,$libelle,$prixUnitaire,$quantiteStock,$prixAchat,$image,$idCategorie,$description);
-            }
-            return null;
-        }
-
-        function updateProduit($obj){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("UPDATE produit SET libelle=?,prixUnitaire=?,quantiteStock=?,prixAchat=?,image=?,idCategorie=? where reference=?; ");
-            $stmt->execute(array($obj->get("l"),$obj->get("p"),$obj->get("q"),$obj->get("a"),$obj->get("i"),$obj->get("c"),$obj->get("r")));
-        }
-
-        function deleteProduit($id){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("DELETE FROM produit where reference=?; ");
-            $stmt->execute(array($id));
-        }
-
-//COMMANDE////////
-
-        function ajouterCommande($obj){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("INSERT INTO commande(date,idClient) VALUES(?,?)");
-            $stmt->execute(array($obj->get("d"),$obj->get("i")));
-            //header("location:../Presentation/afficherClients.php");
-        }
-
-        function afficherCommande(){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM commande");
-            $stmt->execute();
-            $cmd=[];
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                $cli=new Commande($numeroCmd,$date,$idClient);
-                $cmd[]=$cli;
-            }
-            return $cmd;
-        }
-
-        function getCommande($id){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM commande where numeroCmd=?;");
-            $stmt->execute(array($id));
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return new Commande($numeroCmd,$date,$idClient);
-            }
-            return null;
-        }
-
-        function getCommandeTotal(){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("SELECT count(*) as number FROM commande;");
-            $stmt->execute();
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return $number;
-            }
-            return 0;
-        }
-
-        static function getCommandeId($date,$idClient){
-            $pdo = getPDO();
-            $stmt=$pdo->prepare("SELECT numeroCmd FROM commande where date=? AND idClient=?;");
-            $stmt->execute(array($date,$idClient));
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return $numeroCmd;
-            }
-            return null;
-        }
-
-        function deleteCommande($id){
-            $pdo = getPDO();
-            $stmt=$pdo->prepare("DELETE FROM commande where numeroCmd=?; ");
-            $stmt->execute(array($id));
-        }
-
-        // static function Stats(){
-        //     $pdo = getPDO();
-        //     $stmt=$pdo->prepare("SELECT date_format(commande.date,'%m-%y') as monthnum,date_format(commande.date,'%M %Y') as month,sum(prixVente) as prix 
-        //                         FROM commande natural join lignecmd group by monthname(commande.date) order by `monthnum` ASC;");
-        //     $stmt->execute();
-        //     return $stmt;
-            
-        //     return 0;
-        // }
-
-        static function Income(){
-            $pdo = getPDO();
-            $stmt=$pdo->prepare("SELECT sum(prixVente) as prix FROM commande natural join lignecmd ;");
-            $stmt->execute();
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return $prix;
-            }
-            return null;
-        }
-        // static function Trending($nbr){
-        //     $pdo = getPDO();  // Ensure this method exists and correctly initializes a PDO instance.
-        //     $stmt = $pdo->prepare("SELECT reference, MAX(commande.date) as latest_date, COUNT(reference) as num
-        //                             FROM commande
-        //                             NATURAL JOIN lignecmd
-        //                             WHERE commande.date < NOW() AND commande.date > DATE_SUB(NOW(), INTERVAL 7 DAY)
-        //                             GROUP BY reference
-        //                             ORDER BY num DESC, latest_date DESC
-        //                             LIMIT ?");
-        //     $stmt->execute([$nbr]);
-        //     $produits = [];
-        //     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        //         $produits[] = DAO::getProduit($row['reference']);
-        //     }
-        //     return $produits;
-        // }
-
-       
-//Approvisionnement////////
-
-        function ajouterApprovis($obj){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("INSERT INTO approvisionnement(date,idFournisseur) VALUES(?,?)");
-            $stmt->execute(array($obj->get("d"),$obj->get("i")));
-            //header("location:../Presentation/afficherApprovis.php");
-        }
-
-        function afficherApprovis(){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM approvisionnement");
-            $stmt->execute();
-            $cmd=[];
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                $cli=new Approvis($numeroAppro,$date,$idFournisseur);
-                $cmd[]=$cli;
-            }
-            return $cmd;
-        }
-
-        function getApprovis($id){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM approvisionnement where numeroAppro=?;");
-            $stmt->execute(array($id));
-
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return new Approvis($numeroAppro,$date,$idFournisseur);
-            }
-            return null;
-        }
-
-        function getApprovisTotal(){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("SELECT count(*) as number FROM approvisionnement;");
-            $stmt->execute();
-
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return $number;
-            }
-            return 0;
-        }
-
-        static function getApprovisId($date,$idFournisseur){
-            $pdo=getPDO();
-            $stmt=$pdo->prepare("SELECT numeroAppro FROM approvisionnement where date=? AND idFournisseur=?;");
-            $stmt->execute(array($date,$idFournisseur));
-
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return $numeroAppro;
-            }
-            return null;
-        }
-
-        function deleteApprovis($id){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("DELETE FROM approvisionnement where numeroAppro=?; ");
-            $stmt->execute(array($id));
-        }
-        
-//CATEGORIE////////
-
-        function ajouterCategorie($obj){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("INSERT INTO categorie(idCategorie,nomCategorie) VALUES(?,?)");
-            $stmt->execute(array($obj->get("i"),$obj->get("n")));
-            //header("location:../Presentation/afficherClients.php");
-        }
-        
-        function afficherCategorie(){
-            $pdo = $this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM categorie");
-            $stmt->execute();
-            $cat=[];
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                $cli=new Categorie($idCategorie,$nomCategorie);
-                $cat[]=$cli;
-            }
-            return $cat;
-        }
-
-        function getCategorie($id){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("SELECT * FROM categorie where idCategorie=?;");
-            $stmt->execute(array($id));
-    
-            if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                extract($row);
-                return new Client($idCategorie,$nomCategorie);
-            }
-            return null;
-        }
-
-        function updateCategorie($obj){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("UPDATE categorie SET nomCategorie=? where idCategorie=?; ");
-            $stmt->execute(array($obj->get("n"),$obj->get("i")));
-        }
-        
-        function deleteCategorie($id){
-            $pdo=$this->getPDO();
-            $stmt=$pdo->prepare("DELETE FROM categorie where idCategorie='$id'");
-            $stmt->execute();
-        }
-
-//LIGNE DE CMD////////////////////////
-function ajouterLigneCmd($obj){
-    $pdo = $this->getPDO();
-    $stmt=$pdo->prepare("INSERT INTO lignecmd VALUES(?,?,?,?)");
-    $stmt->execute(array($obj->get("n"),$obj->get("q"),$obj->get("r"),$obj->get("p")));
-    $stm=$pdo->prepare("UPDATE produit SET quantiteStock = ? where reference = ?;");
-    $stm->execute(array($obj->get("i"),$obj->get("r")));
-    //header("location:../Presentation/afficherClients.php");
-}
-
-function afficherLigneCmd($id){
-    $pdo = $this->getPDO();
-    $stmt=$pdo->prepare("SELECT reference,libelle,quantite,prixVente,(quantite*prixVente) as total FROM lignecmd natural join produit where numeroCmd=$id");
-    $stmt->execute();
-    $clients=[];
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-        $clients[]=$row;
+    public function __construct()
+    {
+        $this->pdo = $this->createConnection();
     }
-    return $clients;
-}
 
-function totalCmd($id){
-    $pdo = $this->getPDO();
-    $stmt=$pdo->prepare("SELECT sum(prixVente*quantite) as total FROM lignecmd where numeroCmd=$id");
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        extract($row);
-        return $total;
- 
-}
+    private function createConnection(): \PDO
+    {
+        static $config;
+        if ($config === null) {
+            $config = require __DIR__ . '/../config/database.php';
+        }
 
-//LIGNE DE APPRO////////////////////////
-function ajouterLigneAppro($obj){
-    $pdo = $this->getPDO();
-    $stmt=$pdo->prepare("INSERT INTO ligneappro VALUES(?,?,?,?)");
-    $stmt->execute(array($obj->get("n"),$obj->get("q"),$obj->get("r"),$obj->get("p")));
-    $stm=$pdo->prepare("UPDATE produit SET quantiteStock = ? where reference = ?;");
-    $stm->execute(array($obj->get("i"),$obj->get("r")));
-    // header("location:../Presentation/afficherClients.php");
-}
+        $dsn = sprintf(
+            'mysql:host=%s;port=%d;dbname=%s;charset=%s',
+            $config['host'],
+            $config['port'],
+            $config['dbname'],
+            $config['charset']
+        );
 
-function afficherLigneAppro($id){
-    $pdo = $this->getPDO();
-    $stmt=$pdo->prepare("SELECT produit.reference,libelle,quantite,ligneappro.prixAchat,(quantite*ligneappro.prixAchat) as total FROM ligneAppro join produit where numeroAppro=$id");
-    $stmt->execute();
-    $clients=[];
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-        $clients[]=$row;
+        return new \PDO(
+            $dsn,
+            $config['user'],
+            $config['password'],
+            [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+            ]
+        );
     }
-    return $clients;
+
+    private function getPDO(): \PDO
+    {
+        return $this->pdo;
+    }
+
+    public function authentification(string $login, string $password): ?array
+    {
+        $stmt = $this->getPDO()->prepare(
+            'SELECT * FROM administrateurs WHERE login = ? AND password = ?'
+        );
+        $stmt->execute([$login, $password]);
+        $row = $stmt->fetch();
+
+        return $row ?: null;
+    }
+
+    public function executeQuery(string $sql, array $params = []): array
+    {
+        $stmt = $this->getPDO()->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    // CLIENT -----------------------------------------------------------------
+
+    public function ajouterClient(Client $client): void
+    {
+        $this->getPDO()
+            ->prepare('INSERT INTO client(nom, adresse, telephone, email) VALUES(?, ?, ?, ?)')
+            ->execute([
+                $client->get('n'),
+                $client->get('a'),
+                $client->get('t'),
+                $client->get('e'),
+            ]);
+    }
+
+    public function afficherClient(): array
+    {
+        $stmt = $this->getPDO()->query('SELECT * FROM client');
+        $clients = [];
+
+        while ($row = $stmt->fetch()) {
+            $cli = new Client($row['nom'], $row['adresse'], $row['telephone'], $row['email']);
+            $cli->setId((int) $row['idClient']);
+            $clients[] = $cli;
+        }
+
+        return $clients;
+    }
+
+    public function getClient(int $id): ?Client
+    {
+        $stmt = $this->getPDO()->prepare('SELECT * FROM client WHERE idClient = ?');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return null;
+        }
+
+        $client = new Client($row['nom'], $row['adresse'], $row['telephone'], $row['email']);
+        $client->setId((int) $row['idClient']);
+
+        return $client;
+    }
+
+    public function getClientTotal(): int
+    {
+        $stmt = $this->getPDO()->query('SELECT COUNT(*) AS number FROM client');
+        $row = $stmt->fetch();
+
+        return $row ? (int) $row['number'] : 0;
+    }
+
+    public function updateClient(Client $client): void
+    {
+        $this->getPDO()
+            ->prepare('UPDATE client SET nom = ?, adresse = ?, telephone = ?, email = ? WHERE idClient = ?')
+            ->execute([
+                $client->get('n'),
+                $client->get('a'),
+                $client->get('t'),
+                $client->get('e'),
+                $client->get('i'),
+            ]);
+    }
+
+    public function deleteClient(int $id): void
+    {
+        $this->getPDO()->prepare('DELETE FROM client WHERE idClient = ?')->execute([$id]);
+    }
+
+    // FOURNISSEUR -------------------------------------------------------------
+
+    public function ajouterFournisseur(Fournisseur $fournisseur): void
+    {
+        $this->getPDO()
+            ->prepare('INSERT INTO fournisseur(nom, adresse, telephone, email) VALUES(?, ?, ?, ?)')
+            ->execute([
+                $fournisseur->get('n'),
+                $fournisseur->get('a'),
+                $fournisseur->get('t'),
+                $fournisseur->get('e'),
+            ]);
+    }
+
+    public function afficherFournisseur(): array
+    {
+        $stmt = $this->getPDO()->query('SELECT * FROM fournisseur');
+        $fournisseurs = [];
+
+        while ($row = $stmt->fetch()) {
+            $fournisseur = new Fournisseur($row['nom'], $row['adresse'], $row['telephone'], $row['email']);
+            $fournisseur->setId((int) $row['idFournisseur']);
+            $fournisseurs[] = $fournisseur;
+        }
+
+        return $fournisseurs;
+    }
+
+    public function getFournisseur(int $id): ?Fournisseur
+    {
+        $stmt = $this->getPDO()->prepare('SELECT * FROM fournisseur WHERE idFournisseur = ?');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return null;
+        }
+
+        $fournisseur = new Fournisseur($row['nom'], $row['adresse'], $row['telephone'], $row['email']);
+        $fournisseur->setId((int) $row['idFournisseur']);
+
+        return $fournisseur;
+    }
+
+    public function updateFournisseur(Fournisseur $fournisseur): void
+    {
+        $this->getPDO()
+            ->prepare('UPDATE fournisseur SET nom = ?, adresse = ?, telephone = ?, email = ? WHERE idFournisseur = ?')
+            ->execute([
+                $fournisseur->get('n'),
+                $fournisseur->get('a'),
+                $fournisseur->get('t'),
+                $fournisseur->get('e'),
+                $fournisseur->get('i'),
+            ]);
+    }
+
+    public function deleteFournisseur(int $id): void
+    {
+        $this->getPDO()->prepare('DELETE FROM fournisseur WHERE idFournisseur = ?')->execute([$id]);
+    }
+
+    // PRODUIT -----------------------------------------------------------------
+
+    public function ajouterProduit(Produit $produit): void
+    {
+        $this->getPDO()
+            ->prepare(
+                'INSERT INTO produit(reference, libelle, prixUnitaire, quantiteStock, prixAchat, image, idCategorie) '
+                . 'VALUES(?, ?, ?, ?, ?, ?, ?)'
+            )
+            ->execute([
+                $produit->get('r'),
+                $produit->get('l'),
+                $produit->get('p'),
+                $produit->get('q'),
+                $produit->get('a'),
+                $produit->get('i'),
+                $produit->get('c'),
+            ]);
+    }
+
+    public function afficherProduits(): array
+    {
+        $stmt = $this->getPDO()->query('SELECT * FROM produit NATURAL JOIN categorie');
+        $produits = [];
+
+        while ($row = $stmt->fetch()) {
+            $produits[] = new Produit(
+                $row['reference'],
+                $row['libelle'],
+                (float) $row['prixUnitaire'],
+                (int) $row['quantiteStock'],
+                (float) $row['prixAchat'],
+                $row['image'],
+                $row['nomCategorie']
+            );
+        }
+
+        return $produits;
+    }
+
+    public static function afficherProduitsByCat(int $categorieId): array
+    {
+        $dao = new self();
+        $stmt = $dao->getPDO()->prepare('SELECT * FROM produit NATURAL JOIN categorie WHERE idCategorie = ?');
+        $stmt->execute([$categorieId]);
+        $produits = [];
+
+        while ($row = $stmt->fetch()) {
+            $produits[] = new Produit(
+                $row['reference'],
+                $row['libelle'],
+                (float) $row['prixUnitaire'],
+                (int) $row['quantiteStock'],
+                (float) $row['prixAchat'],
+                $row['image'],
+                $row['nomCategorie']
+            );
+        }
+
+        return $produits;
+    }
+
+    public function getProduit(string $reference): ?Produit
+    {
+        $stmt = $this->getPDO()->prepare('SELECT * FROM produit WHERE reference = ?');
+        $stmt->execute([$reference]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return null;
+        }
+
+        return new Produit(
+            $row['reference'],
+            $row['libelle'],
+            (float) $row['prixUnitaire'],
+            (int) $row['quantiteStock'],
+            (float) $row['prixAchat'],
+            $row['image'],
+            $row['idCategorie']
+        );
+    }
+
+    public function updateProduit(Produit $produit): void
+    {
+        $this->getPDO()
+            ->prepare(
+                'UPDATE produit SET libelle = ?, prixUnitaire = ?, quantiteStock = ?, prixAchat = ?, image = ?, idCategorie = ? '
+                . 'WHERE reference = ?'
+            )
+            ->execute([
+                $produit->get('l'),
+                $produit->get('p'),
+                $produit->get('q'),
+                $produit->get('a'),
+                $produit->get('i'),
+                $produit->get('c'),
+                $produit->get('r'),
+            ]);
+    }
+
+    public function deleteProduit(string $reference): void
+    {
+        $this->getPDO()->prepare('DELETE FROM produit WHERE reference = ?')->execute([$reference]);
+    }
+
+    // COMMANDE ----------------------------------------------------------------
+
+    public function ajouterCommande(Commande $commande): void
+    {
+        $this->getPDO()
+            ->prepare('INSERT INTO commande(date, idClient) VALUES(?, ?)')
+            ->execute([
+                $commande->get('d'),
+                $commande->get('i'),
+            ]);
+    }
+
+    public function afficherCommande(): array
+    {
+        $stmt = $this->getPDO()->query('SELECT * FROM commande');
+        $commandes = [];
+
+        while ($row = $stmt->fetch()) {
+            $commandes[] = new Commande($row['numeroCmd'], $row['date'], (int) $row['idClient']);
+        }
+
+        return $commandes;
+    }
+
+    public function getCommande(int $id): ?Commande
+    {
+        $stmt = $this->getPDO()->prepare('SELECT * FROM commande WHERE numeroCmd = ?');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return null;
+        }
+
+        return new Commande($row['numeroCmd'], $row['date'], (int) $row['idClient']);
+    }
+
+    public function getCommandeTotal(): int
+    {
+        $stmt = $this->getPDO()->query('SELECT COUNT(*) AS number FROM commande');
+        $row = $stmt->fetch();
+
+        return $row ? (int) $row['number'] : 0;
+    }
+
+    public static function getCommandeId(string $date, int $idClient): ?int
+    {
+        $dao = new self();
+        $stmt = $dao->getPDO()->prepare('SELECT numeroCmd FROM commande WHERE date = ? AND idClient = ?');
+        $stmt->execute([$date, $idClient]);
+        $row = $stmt->fetch();
+
+        return $row ? (int) $row['numeroCmd'] : null;
+    }
+
+    public function deleteCommande(int $id): void
+    {
+        $this->getPDO()->prepare('DELETE FROM commande WHERE numeroCmd = ?')->execute([$id]);
+    }
+
+    public static function Income(): ?float
+    {
+        $dao = new self();
+        $stmt = $dao->getPDO()->query('SELECT SUM(prixVente) AS prix FROM commande NATURAL JOIN lignecmd');
+        $row = $stmt->fetch();
+
+        return $row && $row['prix'] !== null ? (float) $row['prix'] : null;
+    }
+
+    // APPROVISIONNEMENT -------------------------------------------------------
+
+    public function ajouterApprovis(Approvis $approvisionnement): void
+    {
+        $this->getPDO()
+            ->prepare('INSERT INTO approvisionnement(date, idFournisseur) VALUES(?, ?)')
+            ->execute([
+                $approvisionnement->get('d'),
+                $approvisionnement->get('i'),
+            ]);
+    }
+
+    public function afficherApprovis(): array
+    {
+        $stmt = $this->getPDO()->query('SELECT * FROM approvisionnement');
+        $approvisionnements = [];
+
+        while ($row = $stmt->fetch()) {
+            $approvisionnements[] = new Approvis($row['numeroAppro'], $row['date'], (int) $row['idFournisseur']);
+        }
+
+        return $approvisionnements;
+    }
+
+    public function getApprovis(int $id): ?Approvis
+    {
+        $stmt = $this->getPDO()->prepare('SELECT * FROM approvisionnement WHERE numeroAppro = ?');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return null;
+        }
+
+        return new Approvis($row['numeroAppro'], $row['date'], (int) $row['idFournisseur']);
+    }
+
+    public function getApprovisTotal(): int
+    {
+        $stmt = $this->getPDO()->query('SELECT COUNT(*) AS number FROM approvisionnement');
+        $row = $stmt->fetch();
+
+        return $row ? (int) $row['number'] : 0;
+    }
+
+    public static function getApprovisId(string $date, int $idFournisseur): ?int
+    {
+        $dao = new self();
+        $stmt = $dao->getPDO()->prepare('SELECT numeroAppro FROM approvisionnement WHERE date = ? AND idFournisseur = ?');
+        $stmt->execute([$date, $idFournisseur]);
+        $row = $stmt->fetch();
+
+        return $row ? (int) $row['numeroAppro'] : null;
+    }
+
+    public function deleteApprovis(int $id): void
+    {
+        $this->getPDO()->prepare('DELETE FROM approvisionnement WHERE numeroAppro = ?')->execute([$id]);
+    }
+
+    // CATEGORIE ---------------------------------------------------------------
+
+    public function ajouterCategorie(Categorie $categorie): void
+    {
+        $this->getPDO()
+            ->prepare('INSERT INTO categorie(idCategorie, nomCategorie) VALUES(?, ?)')
+            ->execute([
+                $categorie->get('i'),
+                $categorie->get('n'),
+            ]);
+    }
+
+    public function afficherCategorie(): array
+    {
+        $stmt = $this->getPDO()->query('SELECT * FROM categorie');
+        $categories = [];
+
+        while ($row = $stmt->fetch()) {
+            $categories[] = new Categorie($row['idCategorie'], $row['nomCategorie']);
+        }
+
+        return $categories;
+    }
+
+    public function getCategorie(int $id): ?Categorie
+    {
+        $stmt = $this->getPDO()->prepare('SELECT * FROM categorie WHERE idCategorie = ?');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return null;
+        }
+
+        return new Categorie($row['idCategorie'], $row['nomCategorie']);
+    }
+
+    public function updateCategorie(Categorie $categorie): void
+    {
+        $this->getPDO()
+            ->prepare('UPDATE categorie SET nomCategorie = ? WHERE idCategorie = ?')
+            ->execute([
+                $categorie->get('n'),
+                $categorie->get('i'),
+            ]);
+    }
+
+    public function deleteCategorie(int $id): void
+    {
+        $this->getPDO()->prepare('DELETE FROM categorie WHERE idCategorie = ?')->execute([$id]);
+    }
+
+    // LIGNE CMD ---------------------------------------------------------------
+
+    public function ajouterLigneCmd(LigneCmd $ligne): void
+    {
+        $pdo = $this->getPDO();
+        $pdo->prepare('INSERT INTO lignecmd VALUES(?, ?, ?, ?)')->execute([
+            $ligne->get('n'),
+            $ligne->get('q'),
+            $ligne->get('r'),
+            $ligne->get('p'),
+        ]);
+
+        $pdo->prepare('UPDATE produit SET quantiteStock = ? WHERE reference = ?')->execute([
+            $ligne->get('i'),
+            $ligne->get('r'),
+        ]);
+    }
+
+    public function afficherLigneCmd(int $commandeId): array
+    {
+        return $this->executeQuery(
+            'SELECT reference, libelle, quantite, prixVente, (quantite * prixVente) AS total '
+            . 'FROM lignecmd NATURAL JOIN produit WHERE numeroCmd = ?',
+            [$commandeId]
+        );
+    }
+
+    public function totalCmd(int $commandeId): float
+    {
+        $stmt = $this->getPDO()->prepare('SELECT SUM(prixVente * quantite) AS total FROM lignecmd WHERE numeroCmd = ?');
+        $stmt->execute([$commandeId]);
+        $row = $stmt->fetch();
+
+        return $row && $row['total'] !== null ? (float) $row['total'] : 0.0;
+    }
+
+    // LIGNE APPRO -------------------------------------------------------------
+
+    public function ajouterLigneAppro(LigneAppro $ligne): void
+    {
+        $pdo = $this->getPDO();
+        $pdo->prepare('INSERT INTO ligneappro VALUES(?, ?, ?, ?)')->execute([
+            $ligne->get('n'),
+            $ligne->get('q'),
+            $ligne->get('r'),
+            $ligne->get('p'),
+        ]);
+
+        $pdo->prepare('UPDATE produit SET quantiteStock = ? WHERE reference = ?')->execute([
+            $ligne->get('i'),
+            $ligne->get('r'),
+        ]);
+    }
+
+    public function afficherLigneAppro(int $approId): array
+    {
+        return $this->executeQuery(
+            'SELECT produit.reference, libelle, quantite, ligneappro.prixAchat, '
+            . '(quantite * ligneappro.prixAchat) AS total '
+            . 'FROM ligneappro JOIN produit ON produit.reference = ligneappro.reference '
+            . 'WHERE numeroAppro = ?',
+            [$approId]
+        );
+    }
+
+    public function totalAppro(int $approId): float
+    {
+        $stmt = $this->getPDO()->prepare('SELECT SUM(prixAchat * quantite) AS total FROM ligneappro WHERE numeroAppro = ?');
+        $stmt->execute([$approId]);
+        $row = $stmt->fetch();
+
+        return $row && $row['total'] !== null ? (float) $row['total'] : 0.0;
+    }
 }
-
-function totalAppro($id){
-    $pdo = $this->getPDO();
-    $stmt=$pdo->prepare("SELECT sum(prixAchat*quantite) as total FROM ligneappro where numeroAppro=$id");
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        extract($row);
-        return $total;
- 
-}
-
-
-
-}
-?>

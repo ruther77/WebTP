@@ -1,6 +1,5 @@
 <?php
-include_once "../../DAO/DAO.php";
-
+require_once __DIR__ . '/../DAO/DAO.php';
 
 class Ligne{
     protected $num;
