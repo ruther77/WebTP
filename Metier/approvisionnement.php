@@ -1,7 +1,7 @@
 <?php
-include_once "../../DAO/DAO.php";
 
-require_once "approcom.php" ;
+require_once __DIR__ . '/../DAO/DAO.php';
+require_once __DIR__ . '/approcom.php';
 
 class Approvis extends ApproCom{
     
@@ -25,7 +25,8 @@ class Approvis extends ApproCom{
     }
 
     public static function delete($id){
-        return $this->dao->deleteApprovis($id);
+        $dao = new DAO();
+        $dao->deleteApprovis($id);
     }
 
 }

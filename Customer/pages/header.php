@@ -1,17 +1,25 @@
+<?php
+require_once __DIR__ . '/../../config/app.php';
+require_once APP_ROOT . '/DAO/DAO.php';
+require_once APP_ROOT . '/Metier/categorie.php';
+
+$customerTitle = $title ?? 'JELLOULI';
+$categoryList = Categorie::afficher();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?=$title?> - JELLOULI</title>
-    
-    <link rel="stylesheet" href="../assets/css/main/app.css">
-    <link rel="shortcut icon" href="../assets/images/logo/favicon.svg" type="image/x-icon">
-    <link rel="shortcut icon" href="../assets/images/logo/favicon.png" type="image/png">
-    <link href="style.css" rel="stylesheet">
-    
-    <link rel="stylesheet" href="../assets/css/shared/iconly.css">
+    <title><?= htmlspecialchars($customerTitle, ENT_QUOTES, 'UTF-8') ?> - JELLOULI</title>
+
+    <link rel="stylesheet" href="<?= asset('assets/css/main/app.css') ?>">
+    <link rel="shortcut icon" href="<?= asset('assets/images/logo/favicon.svg') ?>" type="image/x-icon">
+    <link rel="shortcut icon" href="<?= asset('assets/images/logo/favicon.png') ?>" type="image/png">
+    <link href="<?= asset('Customer/style.css') ?>" rel="stylesheet">
+
+    <link rel="stylesheet" href="<?= asset('assets/css/shared/iconly.css') ?>">
 
 </head>
 
@@ -26,14 +34,14 @@
                 </div>
                 <nav class="main-navbar d-flex justify-content-between align-items-center">
                     <div class="logo">
-                        <a href="index.html"><img src="../assets/images/logo/logo-jell.png" height="30px" alt="Logo"></a>
+                        <a href="<?= url_for('Customer/home.php') ?>"><img src="<?= asset('assets/images/logo/logo-jell.png') ?>" height="30" alt="Logo"></a>
                     </div>
                     <div class="">
                         <ul>
                             
                             <li
                                 class="menu-item">
-                                <a href="home.php" class='menu-link d-flex align-items-start'>
+                                <a href="<?= url_for('Customer/home.php') ?>" class='menu-link d-flex align-items-start'>
                                     <i class="bi bi-grid-fill"></i>
                                     <span>Home</span>
                                 </a>
@@ -41,7 +49,7 @@
                     
                             <li
                                 class="menu-item  has-sub">
-                                <a href="shop.php" class='menu-link d-flex align-items-start'>
+                                <a href="<?= url_for('Customer/shop.php') ?>" class='menu-link d-flex align-items-start'>
                                     <i class="bi bi-stack"></i>
                                     <span>Shop</span>
                                 </a>
@@ -134,16 +142,13 @@
                                         
                                         
                                         <ul class="submenu-group">
-                                        <?php
-                                        require_once("C:\wamp\www\Mini\DAO\DAO.php");
-                                        require_once("C:\wamp\www\Mini\Metier\categorie.php");
-                                        
-                                        $tab = Categorie::afficher();
-                                        foreach($tab as $t) {?>
+                                        <?php foreach ($categoryList as $cat): ?>
                                             <li class="submenu-item">
-                                                <a href="shop.php?id=<?=$t->get("n")?>" class='submenu-link'><?=$t->get("n")?></a>
+                                                <a href="<?= url_for('Customer/shop.php?id=' . urlencode($cat->get('n'))) ?>" class='submenu-link'>
+                                                    <?= htmlspecialchars($cat->get('n'), ENT_QUOTES, 'UTF-8') ?>
+                                                </a>
                                             </li>
-                                        <?php } ?>
+                                        <?php endforeach; ?>
                                             
                                         </ul>
                                         
@@ -178,7 +183,7 @@
                             <div class="dropdown">
                                 <a href="#" id="topbarUserDropdown" class="user-dropdown d-flex align-items-center dropend dropdown-toggle " data-bs-toggle="dropdown" aria-expanded="false">
                                     <div class="avatar avatar-md2" >
-                                        <img src="../assets/images/faces/1.jpg" alt="Avatar">
+                                        <img src="<?= asset('assets/images/faces/1.jpg') ?>" alt="Avatar">
                                     </div>
                                     <div class="text">
                                         <h6 class="user-dropdown-name">John Ducky</h6>

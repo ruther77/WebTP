@@ -1,15 +1,21 @@
-<?php 
-require_once("../../Metier/client.php");
-require_once("../../Metier/produit.php");
-require_once("../../Metier/categorie.php");
-require_once("../../Metier/fournisseur.php");
-require_once("../../Metier/commande.php");
-require_once("../../Metier/ligneCmd.php");
-require_once("../../Metier/approvisionnement.php");
-  session_start();
-  if(!isset($_SESSION['login'])){
-    header("Location: http://localhost/Mini/");
-  }
+<?php
+require_once __DIR__ . '/../../config/app.php';
+require_once __DIR__ . '/../../Metier/client.php';
+require_once __DIR__ . '/../../Metier/produit.php';
+require_once __DIR__ . '/../../Metier/categorie.php';
+require_once __DIR__ . '/../../Metier/fournisseur.php';
+require_once __DIR__ . '/../../Metier/commande.php';
+require_once __DIR__ . '/../../Metier/ligneCmd.php';
+require_once __DIR__ . '/../../Metier/approvisionnement.php';
+
+session_start();
+
+if (!isset($_SESSION['user'])) {
+    header('Location: ' . url_for('index.php'));
+    exit();
+}
+
+$currentUser = $_SESSION['user'];
 ?>
 
 <!DOCTYPE html>
@@ -20,10 +26,10 @@ require_once("../../Metier/approvisionnement.php");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?=$title?> - Mini-Projet</title>
 
-    <link rel="stylesheet" href="../../assets/css/main/app.css">
-    <link rel="stylesheet" href="../../assets/css/main/app-dark.css">
-    <link rel="shortcut icon" href="../../assets/images/logo/favicon.svg" type="image/x-icon">
-    <link rel="shortcut icon" href="../../assets/images/logo/favicon.png" type="image/png">
+    <link rel="stylesheet" href="<?= asset('assets/css/main/app.css'); ?>">
+    <link rel="stylesheet" href="<?= asset('assets/css/main/app-dark.css'); ?>">
+    <link rel="shortcut icon" href="<?= asset('assets/images/logo/favicon.svg'); ?>" type="image/x-icon">
+    <link rel="shortcut icon" href="<?= asset('assets/images/logo/favicon.png'); ?>" type="image/png">
 
 </head>
 
@@ -39,7 +45,7 @@ require_once("../../Metier/approvisionnement.php");
             <div class="sidebar-header position-relative">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="logo">
-                        <a href="../dashboard.php"><img src="../../assets/images/logo/logo-jell.png" alt="Logo"
+                        <a href="<?= url_for('Presentation/dashboard.php'); ?>"><img src="<?= asset('assets/images/logo/logo-jell.png'); ?>" alt="Logo"
                                 srcset="" style="margin-top: 4px;"></a>
                     </div>
                     <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
@@ -84,14 +90,14 @@ require_once("../../Metier/approvisionnement.php");
                         <div class="d-flex align-items-center">
                             <div class="avatar bg-primary me-3">
                                 <span
-                                    class="avatar-content"><?php echo strtoupper(substr($_SESSION['login'],0,2)); ?></span>
+                                    class="avatar-content"><?php echo strtoupper(substr($currentUser['login'] ?? '',0,2)); ?></span>
                             </div>
                             <div class="ms-1 name">
-                                <h6 class="font-bold"><?php echo $_SESSION['login']; ?></h6>
+                                <h6 class="font-bold"><?php echo htmlspecialchars($currentUser['login'] ?? '', ENT_QUOTES, 'UTF-8'); ?></h6>
                                 <h6 class="text-muted mb-0">Est Safi</h6>
                             </div>
                             <div style="margin-left:2rem;">
-                                <a href="../destroy.php">
+                                <a href="<?= url_for('Presentation/destroy.php'); ?>">
                                     <i class="bi bi-power"></i>
                                 </a>
                             </div>
@@ -102,7 +108,7 @@ require_once("../../Metier/approvisionnement.php");
                     <li class="sidebar-title">Menu</li>
 
                     <li class="sidebar-item  ">
-                        <a href="http://localhost/Mini/Presentation/dashboard.php" class='sidebar-link'>
+                        <a href="<?= url_for('Presentation/dashboard.php'); ?>" class='sidebar-link'>
                             <i class="bi bi-grid-fill"></i>
                             <span>Dashboard</span>
                         </a>
@@ -115,10 +121,10 @@ require_once("../../Metier/approvisionnement.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Client/ajouterClient.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/Client/ajouterClient.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Client/afficherClients.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Client/afficherClients.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -130,11 +136,11 @@ require_once("../../Metier/approvisionnement.php");
                         <ul class="submenu ">
                             <li class="submenu-item ">
                                 <a
-                                    href="http://localhost/Mini/Presentation/Fournisseur/ajouterFournisseur.php">Ajout</a>
+                                    href="<?= url_for('Presentation/Fournisseur/ajouterFournisseur.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
                                 <a
-                                    href="http://localhost/Mini/Presentation/Fournisseur/afficherFournisseurs.php">Liste</a>
+                                    href="<?= url_for('Presentation/Fournisseur/afficherFournisseurs.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -145,10 +151,10 @@ require_once("../../Metier/approvisionnement.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Produit/ajouterProduit.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/Produit/ajouterProduit.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Produit/afficherProduits.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Produit/afficherProduits.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -159,10 +165,10 @@ require_once("../../Metier/approvisionnement.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Categorie/ajouterCategorie.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/Categorie/ajouterCategorie.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Categorie/afficherCategories.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Categorie/afficherCategories.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -173,10 +179,10 @@ require_once("../../Metier/approvisionnement.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Caisse/caisse.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/caisse/caisse.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Commande/afficherCommandes.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Commande/afficherCommandes.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -187,10 +193,10 @@ require_once("../../Metier/approvisionnement.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Approvisionnement/caisse.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/Approvisionnement/caisse.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Approvisionnement/afficherApprovisionnements.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Approvisionnement/afficherApprovisionnements.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>

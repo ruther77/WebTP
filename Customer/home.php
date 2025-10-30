@@ -1,10 +1,18 @@
-    <!-- ----------------------------------------------------------------------------------------- -->
-    <!--                                          Header                                           -->
-    <!-- ----------------------------------------------------------------------------------------- -->
+<?php
+require_once __DIR__ . '/../config/app.php';
+require_once APP_ROOT . '/DAO/DAO.php';
+require_once APP_ROOT . '/Metier/produit.php';
+require_once APP_ROOT . '/Metier/categorie.php';
 
-    <?php $title = "Home" ;include "pages/header.php" ?>
+$title = 'Home';
+$dao = new DAO();
+$trendingProducts = $dao->getTrendingProducts(5);
+$categorySections = Categorie::afficher();
 
-    
+include __DIR__ . '/pages/header.php';
+?>
+
+
     <!-- ----------------------------------------------------------------------------------------- -->
     <!--                                          Container                                        -->
     <!-- ----------------------------------------------------------------------------------------- -->
@@ -15,10 +23,10 @@
         <div id="carouselExampleSlidesOnly" class="carousel slide mb-5" data-bs-ride="carousel" data-bs-interval="2000">
         <div class="carousel-inner">
             <div class="carousel-item">
-            <img src="../assets/images/Atlas-Gaming-MSI-Laptop-Banners.jpg" class="d-block w-100" alt="...">
+            <img src="<?= asset('assets/images/Atlas-Gaming-MSI-Laptop-Banners.jpg') ?>" class="d-block w-100" alt="...">
           </div>
           <div class="carousel-item active">
-              <img src="../assets/images/AORUS-MOTHERBOARDS-DESKTOP.jpg" class="d-block w-100" alt="...">
+              <img src="<?= asset('assets/images/AORUS-MOTHERBOARDS-DESKTOP.jpg') ?>" class="d-block w-100" alt="...">
             </div>
         </div>
       </div>
@@ -41,23 +49,18 @@
                     <!-- Start Product Item -->
                     <div class="slick-list draggable">
                         <div class="slick-track pt-3" style="opacity: 1; width: 1480px; transform: translate3d(0px, 0px, 0px);">
-                        <?php
-                                include_once("C:\wamp\www\Mini\DAO\DAO.php");
-                                require_once("C:\wamp\www\Mini\Metier\produit.php");
-                                $tab = DAO::Trending(5);
-                                $i=0;
-                                foreach($tab as $b) {?>
-                            <div class="product-item slick-slide slick-active " data-slick-index="<?=$i?>" aria-hidden="false" style="width: 266px;" tabindex="0">
+                        <?php foreach ($trendingProducts as $index => $product): ?>
+                            <div class="product-item slick-slide slick-active " data-slick-index="<?= $index ?>" aria-hidden="false" style="width: 266px;" tabindex="0">
                                 <div class="product-item__thumb">
-                                    <a href="single-product.html" tabindex="0">
-                                        <img class="thumb-primary" src="../assets/photos/<?=$b->get("i")?>" alt="Product">
-                                        <img class="thumb-secondary" src="../assets/photos//<?=$b->get("i")?>" alt="Product">
+                                    <a href="<?= url_for('Customer/single-product.php?ref=' . urlencode($product->get('r'))) ?>" tabindex="0">
+                                        <img class="thumb-primary" src="<?= asset('assets/photos/' . $product->get('i')) ?>" alt="Product">
+                                        <img class="thumb-secondary" src="<?= asset('assets/photos/' . $product->get('i')) ?>" alt="Product">
                                     </a>
                                 </div>
 
                                 <div class="product-item__content" style="background-color:#f1f1f1;">
-                                    <h4 class="title"><a href="single-product.html" tabindex="0"><?=$b->get("l")?></a></h4>
-                                    <span class="price"><strong>Price:</strong> <?=$b->get("p")?> Dhs</span>
+                                    <h4 class="title"><a href="<?= url_for('Customer/single-product.php?ref=' . urlencode($product->get('r'))) ?>" tabindex="0"><?= htmlspecialchars($product->get('l'), ENT_QUOTES, 'UTF-8') ?></a></h4>
+                                    <span class="price"><strong>Price:</strong> <?= number_format((float) $product->get('p'), 2, '.', ' ') ?> Dhs</span>
                                 </div>
 
                                 <div class="product-item__action">
@@ -67,9 +70,7 @@
                                     <button class="btn-add-to-cart" tabindex="0"><i class="ion-eye"></i></button>
                                 </div>
                             </div>
-                    <?php
-                                $i++; }
-                            ?>
+                    <?php endforeach; ?>
                         </div>
                     </div>
                     <!-- End Product Item -->
@@ -78,11 +79,7 @@
         </div>
     </div>
 </section>
-<?php
-require_once("C:\wamp\www\Mini\DAO\DAO.php");
-require_once("C:\wamp\www\Mini\Metier\categorie.php");
-$dab = Categorie::afficher();
-foreach($dab as $g) {?>
+<?php foreach ($categorySections as $category): ?>
 
 <hr class="mb-5" style="background-color:gray;"/>
 
@@ -90,8 +87,8 @@ foreach($dab as $g) {?>
     <div class="row">
         <div class="col-lg-5 ml-5">
             <div class="section-title d-flex" style="margin-bottom: 10px;align-items:center">
-                <h4 class="h4"><?=$g->get("n")?></h4>
-                <em><a href="shop.php?id=<?=$g->get("n")?>">Voir Plus</a></em>
+                <h4 class="h4"><?= htmlspecialchars($category->get('n'), ENT_QUOTES, 'UTF-8') ?></h4>
+                <em><a href="<?= url_for('Customer/shop.php?id=' . urlencode($category->get('n'))) ?>">Voir Plus</a></em>
             </div>
         </div>
     </div>
@@ -104,21 +101,20 @@ foreach($dab as $g) {?>
                     <div class="slick-list draggable">
                         <div class="slick-track pt-3" style="opacity: 1; width: 1480px; transform: translate3d(0px, 0px, 0px);">
                         <?php
-                                // require "../Metier/produit.php";
-                                $tab = DAO::afficherProduitsByCat($g->get("i"));
-                                $i=0;
-                                foreach($tab as $f) {?>
-                            <div class="product-item slick-slide slick-active " data-slick-index="<?=$i?>" aria-hidden="false" style="width: 266px;" tabindex="0">
+                                $productsByCategory = DAO::afficherProduitsByCat((int) $category->get('i'));
+                                foreach ($productsByCategory as $index => $product) :
+                        ?>
+                            <div class="product-item slick-slide slick-active " data-slick-index="<?= $index ?>" aria-hidden="false" style="width: 266px;" tabindex="0">
                                 <div class="product-item__thumb">
-                                    <a href="single-product.html" tabindex="0">
-                                        <img class="thumb-primary" src="../assets/photos/<?=$f->get("i")?>" alt="Product">
-                                        <img class="thumb-secondary" src="../assets/photos//<?=$f->get("i")?>" alt="Product">
+                                    <a href="<?= url_for('Customer/single-product.php?ref=' . urlencode($product->get('r'))) ?>" tabindex="0">
+                                        <img class="thumb-primary" src="<?= asset('assets/photos/' . $product->get('i')) ?>" alt="Product">
+                                        <img class="thumb-secondary" src="<?= asset('assets/photos/' . $product->get('i')) ?>" alt="Product">
                                     </a>
                                 </div>
 
                                 <div class="product-item__content" style="background-color:#f1f1f1;">
-                                    <h4 class="title"><a href="single-product.html" tabindex="0"><?=$f->get("l")?></a></h4>
-                                    <span class="price"><strong>Price:</strong> <?=$f->get("p")?> Dhs</span>
+                                    <h4 class="title"><a href="<?= url_for('Customer/single-product.php?ref=' . urlencode($product->get('r'))) ?>" tabindex="0"><?= htmlspecialchars($product->get('l'), ENT_QUOTES, 'UTF-8') ?></a></h4>
+                                    <span class="price"><strong>Price:</strong> <?= number_format((float) $product->get('p'), 2, '.', ' ') ?> Dhs</span>
                                 </div>
 
                                 <div class="product-item__action">
@@ -128,20 +124,16 @@ foreach($dab as $g) {?>
                                     <button class="btn-add-to-cart" tabindex="0"><i class="ion-eye"></i></button>
                                 </div>
                             </div>
-                        <?php
-                                $i++; }
-                            ?>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
+                </div>
                     <!-- End Product Item -->
                 </div>
             </div>
         </div>
     </div>
 </section>
-<?php
-         }
-    ?>
+<?php endforeach; ?>
 
 
 
@@ -165,13 +157,9 @@ foreach($dab as $g) {?>
         </div>
     </div>
     </div>
-    <script src="../assets/js/bootstrap.js"></script>
-    <script src="../assets/js/app.js"></script>
-    <!-- <script src="../assets/js/pages/horizontal-layout.js"></script> -->
-    
-<!-- <script src="../assets/extensions/apexcharts/apexcharts.min.js"></script> -->
-<!-- <script src="../assets/js/pages/dashboard.js"></script> -->
-<script src="js.js"></script>
+    <script src="<?= asset('assets/js/bootstrap.js') ?>"></script>
+    <script src="<?= asset('assets/js/app.js') ?>"></script>
+    <script src="<?= asset('Customer/js.js') ?>"></script>
 
 
 </body>

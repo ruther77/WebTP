@@ -1,9 +1,19 @@
-<?php 
-require("../DAO/DAO.php");
-  session_start();
-  if(!isset($_SESSION['login'])){
-    header("Location: http://localhost/Mini/");
-  }
+<?php
+require_once __DIR__ . '/../config/app.php';
+require_once __DIR__ . '/../DAO/DAO.php';
+
+session_start();
+
+if (!isset($_SESSION['user'])) {
+    header('Location: ' . url_for('index.php'));
+    exit();
+}
+
+$currentUser = $_SESSION['user'];
+$dao = new DAO();
+$monthlyRevenue = $dao->getMonthlyRevenue(6);
+$month = array_column($monthlyRevenue, 'month');
+$prix = array_map(static fn(array $row): float => $row['total'], $monthlyRevenue);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,11 +23,11 @@ require("../DAO/DAO.php");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistiques - Mini-Projet</title>
 
-    <link rel="stylesheet" href="../assets/css/main/app.css">
-    <link rel="stylesheet" href="../assets/css/main/app-dark.css">
-    <link rel="shortcut icon" href="../assets/images/logo/favicon.svg" type="image/x-icon">
-    <link rel="shortcut icon" href="../assets/images/logo/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/css/shared/iconly.css">
+    <link rel="stylesheet" href="<?= asset('assets/css/main/app.css'); ?>">
+    <link rel="stylesheet" href="<?= asset('assets/css/main/app-dark.css'); ?>">
+    <link rel="shortcut icon" href="<?= asset('assets/images/logo/favicon.svg'); ?>" type="image/x-icon">
+    <link rel="shortcut icon" href="<?= asset('assets/images/logo/favicon.png'); ?>" type="image/png">
+    <link rel="stylesheet" href="<?= asset('assets/css/shared/iconly.css'); ?>">
 
 </head>
 
@@ -34,7 +44,7 @@ require("../DAO/DAO.php");
             <div class="sidebar-header position-relative">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="logo">
-                        <a href="../dashboard.php"><img src="../assets/images/logo/logo-jell.png" alt="Logo"
+                        <a href="<?= url_for('Presentation/dashboard.php'); ?>"><img src="<?= asset('assets/images/logo/logo-jell.png'); ?>" alt="Logo"
                                 srcset="" style="margin-top: 4px;"></a>
                     </div>
                     <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
@@ -79,14 +89,14 @@ require("../DAO/DAO.php");
                         <div class="d-flex align-items-center">
                             <div class="avatar bg-primary me-3">
                                 <span
-                                    class="avatar-content"><?php echo strtoupper(substr($_SESSION['login'],0,2)); ?></span>
+                                    class="avatar-content"><?php echo strtoupper(substr($currentUser['login'] ?? '',0,2)); ?></span>
                             </div>
                             <div class="ms-1 name">
-                                <h6 class="font-bold"><?php echo $_SESSION['login']; ?></h6>
+                                <h6 class="font-bold"><?php echo htmlspecialchars($currentUser['login'] ?? '', ENT_QUOTES, 'UTF-8'); ?></h6>
                                 <h6 class="text-muted mb-0">Est Safi</h6>
                             </div>
                             <div style="margin-left:2rem;">
-                                <a href="destroy.php">
+                                <a href="<?= url_for('Presentation/destroy.php'); ?>">
                                     <i class="bi bi-power"></i>
                                 </a>
                             </div>
@@ -97,7 +107,7 @@ require("../DAO/DAO.php");
                     <li class="sidebar-title">Menu</li>
 
                     <li class="sidebar-item  ">
-                        <a href="http://localhost/Mini/Presentation/dashboard.php" class='sidebar-link'>
+                        <a href="<?= url_for('Presentation/dashboard.php'); ?>" class='sidebar-link'>
                             <i class="bi bi-grid-fill"></i>
                             <span>Dashboard</span>
                         </a>
@@ -110,10 +120,10 @@ require("../DAO/DAO.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Client/ajouterClient.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/Client/ajouterClient.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Client/afficherClients.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Client/afficherClients.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -125,11 +135,11 @@ require("../DAO/DAO.php");
                         <ul class="submenu ">
                             <li class="submenu-item ">
                                 <a
-                                    href="http://localhost/Mini/Presentation/Fournisseur/ajouterFournisseur.php">Ajout</a>
+                                    href="<?= url_for('Presentation/Fournisseur/ajouterFournisseur.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
                                 <a
-                                    href="http://localhost/Mini/Presentation/Fournisseur/afficherFournisseurs.php">Liste</a>
+                                    href="<?= url_for('Presentation/Fournisseur/afficherFournisseurs.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -140,10 +150,10 @@ require("../DAO/DAO.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Produit/ajouterProduit.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/Produit/ajouterProduit.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Produit/afficherProduits.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Produit/afficherProduits.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -154,10 +164,10 @@ require("../DAO/DAO.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Categorie/ajouterCategorie.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/Categorie/ajouterCategorie.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Categorie/afficherCategories.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Categorie/afficherCategories.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -168,10 +178,10 @@ require("../DAO/DAO.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Caisse/caisse.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/caisse/caisse.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Commande/afficherCommandes.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Commande/afficherCommandes.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -182,10 +192,10 @@ require("../DAO/DAO.php");
                         </a>
                         <ul class="submenu ">
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Approvisionnement/caisse.php">Ajout</a>
+                                <a href="<?= url_for('Presentation/Approvisionnement/caisse.php'); ?>">Ajout</a>
                             </li>
                             <li class="submenu-item ">
-                                <a href="http://localhost/Mini/Presentation/Approvisionnement/afficherApprovisionnements.php">Liste</a>
+                                <a href="<?= url_for('Presentation/Approvisionnement/afficherApprovisionnements.php'); ?>">Liste</a>
                             </li>
                         </ul>
                     </li>
@@ -324,17 +334,17 @@ require("../DAO/DAO.php");
         </div>
         </div>
         <!-- <script src="../assets/extensions/chart.js/Chart.min.js"></script> -->
-        <script src="../assets/js/chartjs.js"></script>
-        <script src="../assets/js/bootstrap.js"></script>
+        <script src="<?= asset('assets/js/chartjs.js'); ?>"></script>
+        <script src="<?= asset('assets/js/bootstrap.js'); ?>"></script>
         <!-- <script src="../assets/js/extensions/ui-chartjs.js"></script> -->
         <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js" integrity="sha512-a+mx2C3JS6qqBZMZhSI5LpWv8/4UK21XihyLKaFoSbiKQs/3yRdtqCwGuWZGwHKc5amlNN8Y7JlqnWQ6N/MYgA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-        <script src="../assets/js/app.js"></script>
+        <script src="<?= asset('assets/js/app.js'); ?>"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
         </body>
 
-        <script src="../../assets/js/functions.js"></script>
+        <script src="<?= asset('assets/js/functions.js'); ?>"></script>
         <?php 
             // $stmt = DAO::Stats();
             // $dh="Dh";
