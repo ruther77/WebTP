@@ -10,8 +10,12 @@ if (!defined('APP_BASE_URL')) {
     $appRoot = str_replace('\\', '/', APP_ROOT);
     $basePath = '';
 
-    if ($documentRoot !== '' && str_starts_with($appRoot, $documentRoot)) {
-        $basePath = substr($appRoot, strlen($documentRoot));
+    if ($documentRoot !== '') {
+        $documentRootLength = strlen($documentRoot);
+
+        if ($documentRootLength > 0 && strncmp($appRoot, $documentRoot, $documentRootLength) === 0) {
+            $basePath = substr($appRoot, $documentRootLength);
+        }
     }
 
     $basePath = '/' . ltrim($basePath, '/');
