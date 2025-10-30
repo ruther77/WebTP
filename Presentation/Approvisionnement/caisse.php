@@ -1,9 +1,22 @@
-<?php 
-// require("../../Metier/fourniseur.php");
-  session_start();
-  if(!isset($_SESSION['login'])){
-    header("Location: http://localhost/Mini/");
-  }
+<?php
+require_once __DIR__ . '/../../config/app.php';
+require_once __DIR__ . '/../../Metier/categorie.php';
+require_once __DIR__ . '/../../Metier/produit.php';
+require_once __DIR__ . '/../../Metier/fournisseur.php';
+
+session_start();
+
+if (!isset($_SESSION['user'])) {
+    header('Location: ' . url_for('index.php'));
+    exit();
+}
+
+$categories = Categorie::afficher();
+$products = Produit::afficher();
+$suppliers = Fournisseur::afficher();
+$successRef = $_GET['ref'] ?? null;
+$errorMessage = $_SESSION['flash_error'] ?? null;
+unset($_SESSION['flash_error']);
 ?>
 
 <!DOCTYPE html>
@@ -14,13 +27,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caisse - Mini-Projet</title>
 
-    <link rel="stylesheet" href="../../assets/css/main/app.css">
-    <link rel="stylesheet" href="../../assets/css/main/app-dark.css">
-    <link rel="shortcut icon" href="../../assets/images/logo/favicon.svg" type="image/x-icon">
-    <link rel="shortcut icon" href="../../assets/images/logo/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../../assets/extensions/sweetalert2/sweetalert2.min.css">
-    <!-- <script src="../../assets/js/pages/sweetalert2.js"></script> -->
-    <script src="../../assets/extensions/sweetalert2/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="<?= asset('assets/css/main/app.css'); ?>">
+    <link rel="stylesheet" href="<?= asset('assets/css/main/app-dark.css'); ?>">
+    <link rel="shortcut icon" href="<?= asset('assets/images/logo/favicon.svg'); ?>" type="image/x-icon">
+    <link rel="shortcut icon" href="<?= asset('assets/images/logo/favicon.png'); ?>" type="image/png">
+    <link rel="stylesheet" href="<?= asset('assets/extensions/sweetalert2/sweetalert2.min.css'); ?>">
+    <script src="<?= asset('assets/extensions/sweetalert2/sweetalert2.min.js'); ?>"></script>
     <style>
         .not-active-prod{
             display: none;
@@ -30,33 +42,31 @@
 </head>
 
 <body>
-    <?php if(isset($_GET["ref"])){
-        echo '<div class="modal fade text-left hide" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel110" aria-modal="true" style="display: block;">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-success">
-                    <h5 class="modal-title white" id="myModalLabel110">Success Modal
-                    </h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="swal2-icon swal2-success swal2-icon-show" style="display: flex;">
-                        <span class="swal2-success-line-tip"></span> <span class="swal2-success-line-long"></span></div>
-                </div>
-                <div class="modal-footer">
-
-                    <button type="button" class="btn btn-success ml-1" data-bs-dismiss="modal" onclick="print2(`'.$_GET["ref"].'`)">
-                        <i class="bx bx-check d-block d-sm-none"></i>
-                        <span class="d-none d-sm-block">Print</span>
-                    </button>
+    <?php if ($successRef !== null): ?>
+        <div class="modal fade text-left hide" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel110" aria-modal="true" style="display: block;">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-success">
+                        <h5 class="modal-title white" id="myModalLabel110">Success Modal
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="swal2-icon swal2-success swal2-icon-show" style="display: flex;">
+                            <span class="swal2-success-line-tip"></span> <span class="swal2-success-line-long"></span></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success ml-1" data-bs-dismiss="modal" onclick="print2(`<?= htmlspecialchars($successRef, ENT_QUOTES, 'UTF-8'); ?>`)">
+                            <i class="bx bx-check d-block d-sm-none"></i>
+                            <span class="d-none d-sm-block">Print</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>';
-    }
-    ?>
+    <?php endif; ?>
 
     <!-- ----------------------------------------------------------------------------------------- -->
     <!--                                          Sidebar                                          -->
@@ -73,7 +83,7 @@
                     style="margin:1rem auto; padding: 0 1rem;">
                     <a href="javascript:history.back()"  class="align-self-end"><i  class="bi bi-reply-fill"></i></a>
                     <div class="logo">
-                        <a href="../dashboard.php"><img src="../../assets/images/logo/logo.svg" alt="Logo"
+                        <a href="<?= url_for('Presentation/dashboard.php'); ?>"><img src="<?= asset('assets/images/logo/logo.svg'); ?>" alt="Logo"
                                 srcset=""></a>
                     </div>
                     <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
@@ -123,24 +133,18 @@
                             </div>
                         </div>
                     </div>
-                    <?php 
-                    require "../../Metier/categorie.php";
-                    $tab = Categorie::afficher();
-                    
-                    foreach($tab as $t) { ?>
+                    <?php foreach ($categories as $category): ?>
                     <div class="card"
                         style="background-color: var(--bs-body-bg); width: 11vw; height: 3.5rem; margin-bottom:1rem;">
-                        <div class=" btn card-body py-3 px-4" style="height: 3.5rem;" onclick="Cat2(`<?=$t->get('n')?>`)">
+                        <div class=" btn card-body py-3 px-4" style="height: 3.5rem;" onclick="Cat2(`<?= htmlspecialchars($category->get('n'), ENT_QUOTES, 'UTF-8'); ?>`)">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div class="ms-3 name">
-                                    <p class="font-bold"><?=$t->get("n")?></p>
+                                    <p class="font-bold"><?= htmlspecialchars($category->get('n'), ENT_QUOTES, 'UTF-8'); ?></p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <?php
-                }
-                ?>
+                    <?php endforeach; ?>
                 </div>
 
 
@@ -168,7 +172,7 @@
                                         id="searchProduit"  onkeyup="FilterProduit()">
                                     <div class="form-control-icon">
                                         <svg class="bi" width="1.5em" height="1.5em" fill="currentColor">
-                                            <use xlink:href="../../assets/images/bootstrap-icons.svg#search"></use>
+                                            <use xlink:href="<?= asset('assets/images/bootstrap-icons.svg'); ?>#search"></use>
                                         </svg>
                                     </div>
                                 </div>
@@ -180,27 +184,23 @@
             <section class="section">
                 <div class="card" style="width: 52vw;">
                     <div class="cards-space row" id="caisse-produits" style="margin:auto;">
-                        <?php
-                            require "../../Metier/produit.php";
-                            $tab = Produit::afficher();
-                            foreach($tab as $t) {?>
-                                <div class="card d-flex align-items-center" id='<?=$t->get("c")?>'
+                        <?php foreach ($products as $product): ?>
+                                <div class="card d-flex align-items-center" id='<?= htmlspecialchars($product->get("c"), ENT_QUOTES, 'UTF-8'); ?>'
                                 style="width: 7.5rem; background-color: var(--bs-body-bg);padding:0;margin:1rem; ">
-                                    <img class="card-img-top" src="../../assets/photos/<?=$t->get("i")?>" height="90">
+                                    <?php $photoName = basename((string) $product->get('i')); ?>
+                                    <img class="card-img-top" src="<?= asset('assets/photos/' . rawurlencode($photoName)); ?>" height="90" alt="<?= htmlspecialchars($product->get('l'), ENT_QUOTES, 'UTF-8'); ?>">
                                     <div class="card-body d-flex flex-column align-items-center" style="padding:1rem;">
-                                        <h6 class="card-title refer" style="font-size: 1.1rem;"><?=$t->get("r")?></h6>
-                                        <p class="card-text text-center libel" style="font-size: 0.9rem;"><?=$t->get("l")?></p>
+                                        <h6 class="card-title refer" style="font-size: 1.1rem;"><?= htmlspecialchars($product->get('r'), ENT_QUOTES, 'UTF-8'); ?></h6>
+                                        <p class="card-text text-center libel" style="font-size: 0.9rem;"><?= htmlspecialchars($product->get('l'), ENT_QUOTES, 'UTF-8'); ?></p>
                                         <div>
-                                            
+
                                             <button class="btn btn-sm btn-primary"
-                                                onclick="addRow2(`<?=$t->get('r')?>`,`<?=$t->get('l')?>`,<?=$t->get('p')?>,<?=$t->get('q')?>)">Add</button>
-                                                
+                                                onclick="addRow2(`<?= htmlspecialchars($product->get('r'), ENT_QUOTES, 'UTF-8'); ?>`,`<?= htmlspecialchars($product->get('l'), ENT_QUOTES, 'UTF-8'); ?>`,<?= json_encode((float) $product->get('p')); ?>,<?= json_encode((int) $product->get('q')); ?>)">Add</button>
+
                                         </div>
                                         </div>
                                 </div>
-                        <?php
-                             }
-                        ?>
+                        <?php endforeach; ?>
                   </div>
                 </div>
 
@@ -212,20 +212,24 @@
                     <div class=" sidebar-wrapper active" style="width: 31vw; right:0;">
                         <div style="margin-top:1rem; padding: 0 1rem;">
                             <h3>Ticket</h3>
+                            <?php if ($errorMessage): ?>
+                                <div class="alert alert-danger" role="alert">
+                                    <?= htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8'); ?>
+                                </div>
+                            <?php endif; ?>
                             <!-- <button class="btn btn-sm btn-primary" onclick="total('do')">T</button> -->
-                            <form method="post" action="confirmCaisse.php">
+                            <form method="post" action="<?= url_for('Presentation/Approvisionnement/confirmCaisse.php'); ?>">
                                 <div class="d-flex justify-content-between">
                                     <!-- ------------ Client input -------------- -->
                                     <div>
                                         <label>Founisseur:</label>
                                         <select name="client" type="text" value="" class=" form-select"
                                             style="width: 15rem;height:2rem; background-color: var(--bs-body-bg);">
-                                            <?php
-                                        require "../../Metier/fournisseur.php";
-                                        $tab = Fournisseur::afficher();
-                                                foreach($tab as $t) {
-                                                    echo "<option value='".$t->get("i")."'>".$t->get("n")."</option>";}
-                                        ?>
+                                        <?php foreach ($suppliers as $supplier): ?>
+                                            <option value="<?= htmlspecialchars($supplier->get('i'), ENT_QUOTES, 'UTF-8'); ?>">
+                                                <?= htmlspecialchars($supplier->get('n'), ENT_QUOTES, 'UTF-8'); ?>
+                                            </option>
+                                        <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <!-- ------------ Date input -------------- -->
@@ -296,28 +300,42 @@
     </div>
 
 
-    <script src="../../assets/js/bootstrap.js"></script>
-    <script src="../../assets/js/app.js"></script>
-    <script src="../../assets/js/jquery.min.js"></script>
-    <script src="../../assets/js/bootstrap.min.js"></script>
-    <!-- <script src="../../assets/extensions/choices.js/public/assets/scripts/choices.js"></script> -->
-    <script src="../../assets/js/pages/form-element-select.js"></script>
-    <script src="../../assets/extensions/sweetalert2/sweetalert2.min.js"></script>
+    <script src="<?= asset('assets/js/bootstrap.js'); ?>"></script>
+    <script src="<?= asset('assets/js/app.js'); ?>"></script>
+    <script src="<?= asset('assets/js/jquery.min.js'); ?>"></script>
+    <script src="<?= asset('assets/js/bootstrap.min.js'); ?>"></script>
+    <!-- <script src="<?= asset('assets/extensions/choices.js/public/assets/scripts/choices.js'); ?>"></script> -->
+    <script src="<?= asset('assets/js/pages/form-element-select.js'); ?>"></script>
+    <script src="<?= asset('assets/extensions/sweetalert2/sweetalert2.min.js'); ?>"></script>
 
 
 
 </body>
 
-<script src="../../assets/js/functions.js"></script>
+<script>
+    window.trashIconHref = <?= json_encode(asset('assets/images/bootstrap-icons.svg#trash')); ?>;
+</script>
+<script src="<?= asset('assets/js/functions.js'); ?>"></script>
 <script type="text/javascript">
     $(window).on('load', function() {
-        $('#myModal').modal('show');
+        const modal = $('#myModal');
+        if (modal.length) {
+            modal.modal('show');
+        }
     });
+
+    const approPdfUrl = <?= json_encode(url_for('Presentation/Approvisionnement/pdf.php')); ?>;
+    const trashIconHref = <?= json_encode(asset('assets/images/bootstrap-icons.svg#trash')); ?>;
+
     function print2(ref){
-            var mywindow = window.open(`http://localhost/Mini/Presentation/Approvisionnement/pdf.php?ref=${ref}`, 'PRINT', 'height=400,width=600');
-            mywindow.focus(); 
+            const targetUrl = `${approPdfUrl}?ref=${encodeURIComponent(ref)}`;
+            const mywindow = window.open(targetUrl, 'PRINT', 'height=400,width=600');
+            if (!mywindow) {
+                return;
+            }
+            mywindow.focus();
             mywindow.print();
-            mywindow.addEventListener('afterprint', (event) => {
+            mywindow.addEventListener('afterprint', () => {
                 mywindow.close();
             });
         }
@@ -339,7 +357,7 @@ function addRow2(r,l,p,q){
     '<td> <input type="number" name="cart['+i+'][1]" id="prix'+i+'" value="" min="1" class="form-control prix" style="font-size: 0.9rem;">  </td> '+
     '<td> <input onclick="total2('+i+')" onchange="total2('+i+')" type="number" name="cart['+i+'][2]" id="qnt'+i+'" value="1" min="1" max="" class="form-control" style="font-size: 0.9rem;"> </td>'+
     '<td> <div id="total'+i+'" style="font-size: 0.9rem;">'+p+' Dh</div> </td>'+
-    '<td class="deleteIcon"> <svg onclick="deleteRow('+i+')" class="bi" width="1em" height="1em" fill="currentColor"> <use xlink:href="../../assets/images/bootstrap-icons.svg#trash"></use> </svg>'+
+    '<td class="deleteIcon"> <svg onclick="deleteRow('+i+')" class="bi" width="1em" height="1em" fill="currentColor"> <use xlink:href="'+trashIconHref+'"></use> </svg>'+
     '<input type="hidden" name="cart['+i+'][3]" value="'+q+'"> </td> </tr>';
     i++;
     n++;

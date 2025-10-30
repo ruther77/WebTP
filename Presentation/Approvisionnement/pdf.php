@@ -1,12 +1,26 @@
 <?php
-    require_once("../../Metier/fournisseur.php");
-    require_once("../../Metier/produit.php");
-    require_once("../../Metier/approvisionnement.php");
-    require_once("../../Metier/ligneAppro.php");
-    $commande=Approvis::getApprovis($_GET["ref"]);
-    $lignes = LigneAppro::afficher($commande->get('n'));
-    $client = DAO::getFournisseur($commande->get('i'))
+    require_once __DIR__ . '/../../config/app.php';
+    require_once __DIR__ . '/../../DAO/DAO.php';
+    require_once __DIR__ . '/../../Metier/fournisseur.php';
+    require_once __DIR__ . '/../../Metier/produit.php';
+    require_once __DIR__ . '/../../Metier/approvisionnement.php';
+    require_once __DIR__ . '/../../Metier/ligneAppro.php';
 
+    $approId = filter_input(INPUT_GET, 'ref', FILTER_VALIDATE_INT);
+    if (!$approId) {
+        exit('Approvisionnement introuvable');
+    }
+
+    $commande = Approvis::getApprovis($approId);
+    if (!$commande) {
+        exit('Approvisionnement introuvable');
+    }
+
+    $dao = new DAO();
+    $lignes = LigneAppro::afficher($commande->get('n'));
+    $client = $dao->getFournisseur($commande->get('i'));
+    $totalAppro = LigneAppro::total($commande->get('n'));
+    $totalApproFormatted = number_format((float) $totalAppro, 2, '.', ' ');
     ?>
     <!DOCTYPE html>
     <html lang="en">
@@ -24,25 +38,25 @@
     <div class="card-body" style="width:360px; border:1px black solid">
         <div class="form-group row text-left mb-0">
             <div style="display: flex; justify-content: center; margin:0 auto 15px auto; opacity:0.94;">
-                <img width="110" src="../../assets/images/logo/logo-jell.png" alt="" class="logo logo-lg align-self-center">
+                <img width="110" src="<?= asset('assets/images/logo/logo-jell.png'); ?>" alt="" class="logo logo-lg align-self-center">
             </div>
             <div class="col-sm-9">
                 <h5 class="font-weight-bold">Sales and Inventory</h5>
             </div>
             <div class="col-sm-9 py-1">
-                <h6>Date: <?=$commande->get('d')?> </h6>
+                <h6>Date: <?= htmlspecialchars($commande->get('d'), ENT_QUOTES, 'UTF-8'); ?> </h6>
             </div>
         </div>
         <h5>---------------------------------------</h5>
         <div class="form-group row text-left mb-0 py-2">
             <div class="col-sm-7 py-1">
-                <h6 class="font-weight-bold"><?=$client->get('n')?></h6>
-                <div class="mb-1">Tél: 0<?=$client->get('t')?></div>
-                <div class="mb-1"> Email: <?=$client->get('e')?></div>
-                <div class="mb-1"> Adresse: <?=$client->get('a')?></div>
+                <h6 class="font-weight-bold"><?= htmlspecialchars($client ? $client->get('n') : 'Fournisseur inconnu', ENT_QUOTES, 'UTF-8'); ?></h6>
+                <div class="mb-1">Tél: <?= $client ? htmlspecialchars('0' . $client->get('t'), ENT_QUOTES, 'UTF-8') : 'N/A'; ?></div>
+                <div class="mb-1"> Email: <?= $client ? htmlspecialchars($client->get('e'), ENT_QUOTES, 'UTF-8') : 'N/A'; ?></div>
+                <div class="mb-1"> Adresse: <?= $client ? htmlspecialchars($client->get('a'), ENT_QUOTES, 'UTF-8') : 'N/A'; ?></div>
             </div>
         <div style="text-align: center;" class="col-sm-4 py-1">
-             <h6>Commande #<?=$commande->get('n')?> </h6>
+             <h6>Commande #<?= htmlspecialchars($commande->get('n'), ENT_QUOTES, 'UTF-8'); ?> </h6>
         </div>
         </div>
         <table class="table table-bordered" width="100%" cellspacing="0">
@@ -60,10 +74,10 @@
                     foreach($lignes as $l) {
                     ?>
                     <tr>
-                        <td><?=$l['libelle']?></td>
-                        <td><?=$l['quantite']?></td>
-                        <td><?=$l['prixAchat']?></td>
-                        <td><?=$l['total']?></td>
+                        <td><?= htmlspecialchars($l['libelle'], ENT_QUOTES, 'UTF-8'); ?></td>
+                        <td><?= htmlspecialchars((string) $l['quantite'], ENT_QUOTES, 'UTF-8'); ?></td>
+                        <td><?= htmlspecialchars((string) $l['prixAchat'], ENT_QUOTES, 'UTF-8'); ?></td>
+                        <td><?= htmlspecialchars((string) $l['total'], ENT_QUOTES, 'UTF-8'); ?></td>
                     </tr>
                     <?php } 
                 
@@ -76,13 +90,13 @@
                 <h6>-------------------------------</h6>
                 <div class="d-flex justify-content-between">
                     <h5 class="font-weight-bold">TOTAL :</h5>
-                    <h5 class="text-right font-weight-bold"><?=LigneAppro::total($commande->get("n"))?> Dh</h5>
+                    <h5 class="text-right font-weight-bold"><?= htmlspecialchars($totalApproFormatted, ENT_QUOTES, 'UTF-8'); ?> Dh</h5>
                 </div>
                 <table width="100%">
                     <tbody>
                             <tr>
                                 <td class="">Prix HT</td>
-                                <td class="text-right"><?=LigneAppro::total($commande->get("n"))?> Dh</td>
+                                <td class="text-right"><?= htmlspecialchars($totalApproFormatted, ENT_QUOTES, 'UTF-8'); ?> Dh</td>
                             </tr>
                             <tr>
                                 <td class="">Taxe</td>

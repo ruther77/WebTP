@@ -1,5 +1,5 @@
-<?php 
-include_once "C:\laragon\www\Mini\DAO\DAO.php";
+<?php
+require_once __DIR__ . '/../DAO/DAO.php';
 
 
 class Personne{

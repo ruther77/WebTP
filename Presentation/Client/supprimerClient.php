@@ -1,13 +1,17 @@
-<?php 
-  session_start();
-  include_once('../../Metier/client.php');
-  if(!isset($_SESSION['login'])){
-    header("Location: http://localhost/Mini/");
-  }
+<?php
+require_once __DIR__ . '/../../config/app.php';
+require_once __DIR__ . '/../../Metier/client.php';
 
-    if(isset($_GET)){
-      DAO::deleteClient($_GET['id']);
-    }
+session_start();
 
-    header("Location: http://localhost/Mini/Presentation/Client/afficherClients.php");
-?>
+if (!isset($_SESSION['user'])) {
+    header('Location: ' . url_for('index.php'));
+    exit();
+}
+
+if (isset($_GET['id'])) {
+    Client::delete((int) $_GET['id']);
+}
+
+header('Location: ' . url_for('Presentation/Client/afficherClients.php'));
+exit();
