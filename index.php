@@ -25,11 +25,19 @@
 
                     <form action="Presentation/verifier.php" method="post">
                         <?php
-                        if (isset($_GET['error'])) {
-                            echo '<div class="alert alert-danger" role="alert">
-                            Login ou password est incorrect!
-                        </div>';
-                            unset($_GET);
+                        $errorCode = $_GET['error'] ?? null;
+                        $errorMessage = null;
+
+                        if ($errorCode === 'missing_credentials') {
+                            $errorMessage = 'Merci de renseigner votre identifiant et votre mot de passe.';
+                        } elseif ($errorCode === 'database') {
+                            $errorMessage = 'Connexion à la base de données impossible. Réessayez plus tard ou contactez un administrateur.';
+                        } elseif ($errorCode === 'invalid_credentials') {
+                            $errorMessage = 'Login ou mot de passe incorrect.';
+                        }
+
+                        if ($errorMessage !== null) {
+                            echo '<div class="alert alert-danger" role="alert">' . htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8') . '</div>';
                         }
                         ?>
                         <div class="form-group position-relative has-icon-left mb-4">
