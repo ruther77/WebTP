@@ -10,6 +10,10 @@ if (!isset($_SESSION['user'])) {
 }
 
 $currentUser = $_SESSION['user'];
+$dao = new DAO();
+$monthlyRevenue = $dao->getMonthlyRevenue(6);
+$month = array_column($monthlyRevenue, 'month');
+$prix = array_map(static fn(array $row): float => $row['total'], $monthlyRevenue);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -330,17 +334,17 @@ $currentUser = $_SESSION['user'];
         </div>
         </div>
         <!-- <script src="../assets/extensions/chart.js/Chart.min.js"></script> -->
-        <script src="../assets/js/chartjs.js"></script>
-        <script src="../assets/js/bootstrap.js"></script>
+        <script src="<?= asset('assets/js/chartjs.js'); ?>"></script>
+        <script src="<?= asset('assets/js/bootstrap.js'); ?>"></script>
         <!-- <script src="../assets/js/extensions/ui-chartjs.js"></script> -->
         <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js" integrity="sha512-a+mx2C3JS6qqBZMZhSI5LpWv8/4UK21XihyLKaFoSbiKQs/3yRdtqCwGuWZGwHKc5amlNN8Y7JlqnWQ6N/MYgA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-        <script src="../assets/js/app.js"></script>
+        <script src="<?= asset('assets/js/app.js'); ?>"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
         </body>
 
-        <script src="../../assets/js/functions.js"></script>
+        <script src="<?= asset('assets/js/functions.js'); ?>"></script>
         <?php 
             // $stmt = DAO::Stats();
             // $dh="Dh";

@@ -255,6 +255,40 @@ class DAO
         return $produits;
     }
 
+    public function getTrendingProducts(int $limit = 5): array
+    {
+        $limit = max(1, $limit);
+
+        $stmt = $this->getPDO()->prepare(
+            'SELECT lignecmd.reference '
+            . 'FROM commande '
+            . 'JOIN lignecmd ON lignecmd.numeroCmd = commande.numeroCmd '
+            . 'GROUP BY lignecmd.reference '
+            . 'ORDER BY SUM(lignecmd.quantite) DESC, MAX(commande.date) DESC '
+            . 'LIMIT ?'
+        );
+
+        $stmt->bindValue(1, $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        $products = [];
+
+        while ($row = $stmt->fetch()) {
+            $product = $this->getProduit($row['reference']);
+
+            if ($product !== null) {
+                $products[] = $product;
+            }
+        }
+
+        if (!$products) {
+            $allProducts = $this->afficherProduits();
+            $products = array_slice($allProducts, 0, $limit);
+        }
+
+        return $products;
+    }
+
     public function getProduit(string $reference): ?Produit
     {
         $stmt = $this->getPDO()->prepare('SELECT * FROM produit WHERE reference = ?');
@@ -356,7 +390,17 @@ class DAO
 
     public function deleteCommande(int $id): void
     {
-        $this->getPDO()->prepare('DELETE FROM commande WHERE numeroCmd = ?')->execute([$id]);
+        $pdo = $this->getPDO();
+        $pdo->beginTransaction();
+
+        try {
+            $pdo->prepare('DELETE FROM lignecmd WHERE numeroCmd = ?')->execute([$id]);
+            $pdo->prepare('DELETE FROM commande WHERE numeroCmd = ?')->execute([$id]);
+            $pdo->commit();
+        } catch (\Throwable $exception) {
+            $pdo->rollBack();
+            throw $exception;
+        }
     }
 
     public static function Income(): ?float
@@ -366,6 +410,108 @@ class DAO
         $row = $stmt->fetch();
 
         return $row && $row['prix'] !== null ? (float) $row['prix'] : null;
+    }
+
+    public function createCommande(string $date, int $idClient, array $items): int
+    {
+        if ($idClient <= 0) {
+            throw new \InvalidArgumentException('Identifiant client invalide');
+        }
+
+        if (empty($items)) {
+            throw new \InvalidArgumentException('La commande doit contenir au moins un produit');
+        }
+
+        $pdo = $this->getPDO();
+
+        $pdo->beginTransaction();
+
+        try {
+            $pdo->prepare('INSERT INTO commande(date, idClient) VALUES(?, ?)')->execute([$date, $idClient]);
+            $commandeId = (int) $pdo->lastInsertId();
+
+            $selectStock = $pdo->prepare('SELECT quantiteStock FROM produit WHERE reference = ? FOR UPDATE');
+            $insertLine = $pdo->prepare('INSERT INTO lignecmd VALUES(?, ?, ?, ?)');
+            $updateStock = $pdo->prepare('UPDATE produit SET quantiteStock = quantiteStock - ? WHERE reference = ?');
+
+            foreach ($items as $item) {
+                $reference = $item['reference'] ?? null;
+                $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 0;
+                $unitPrice = isset($item['unit_price']) ? (float) $item['unit_price'] : null;
+
+                if (!$reference || $quantity <= 0 || $unitPrice === null) {
+                    throw new \InvalidArgumentException('Ligne de commande invalide');
+                }
+
+                $selectStock->execute([$reference]);
+                $stockRow = $selectStock->fetch();
+
+                if (!$stockRow) {
+                    throw new \RuntimeException(sprintf('Produit %s introuvable', $reference));
+                }
+
+                if ((int) $stockRow['quantiteStock'] < $quantity) {
+                    throw new \RuntimeException(sprintf('Stock insuffisant pour le produit %s', $reference));
+                }
+
+                $insertLine->execute([$commandeId, $quantity, $reference, $unitPrice]);
+                $updateStock->execute([$quantity, $reference]);
+            }
+
+            $pdo->commit();
+
+            return $commandeId;
+        } catch (\Throwable $exception) {
+            $pdo->rollBack();
+
+            throw $exception;
+        }
+    }
+
+    public function createApprovisionnement(string $date, int $idFournisseur, array $items): int
+    {
+        if ($idFournisseur <= 0) {
+            throw new \InvalidArgumentException('Identifiant fournisseur invalide');
+        }
+
+        if (empty($items)) {
+            throw new \InvalidArgumentException('L\'approvisionnement doit contenir au moins un produit');
+        }
+
+        $pdo = $this->getPDO();
+
+        $pdo->beginTransaction();
+
+        try {
+            $pdo->prepare('INSERT INTO approvisionnement(date, idFournisseur) VALUES(?, ?)')
+                ->execute([$date, $idFournisseur]);
+
+            $approId = (int) $pdo->lastInsertId();
+
+            $insertLine = $pdo->prepare('INSERT INTO ligneappro VALUES(?, ?, ?, ?)');
+            $updateStock = $pdo->prepare('UPDATE produit SET quantiteStock = quantiteStock + ? WHERE reference = ?');
+
+            foreach ($items as $item) {
+                $reference = $item['reference'] ?? null;
+                $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 0;
+                $purchasePrice = isset($item['purchase_price']) ? (float) $item['purchase_price'] : null;
+
+                if (!$reference || $quantity <= 0 || $purchasePrice === null) {
+                    throw new \InvalidArgumentException('Ligne d\'approvisionnement invalide');
+                }
+
+                $insertLine->execute([$approId, $quantity, $reference, $purchasePrice]);
+                $updateStock->execute([$quantity, $reference]);
+            }
+
+            $pdo->commit();
+
+            return $approId;
+        } catch (\Throwable $exception) {
+            $pdo->rollBack();
+
+            throw $exception;
+        }
     }
 
     // APPROVISIONNEMENT -------------------------------------------------------
@@ -425,7 +571,17 @@ class DAO
 
     public function deleteApprovis(int $id): void
     {
-        $this->getPDO()->prepare('DELETE FROM approvisionnement WHERE numeroAppro = ?')->execute([$id]);
+        $pdo = $this->getPDO();
+        $pdo->beginTransaction();
+
+        try {
+            $pdo->prepare('DELETE FROM ligneappro WHERE numeroAppro = ?')->execute([$id]);
+            $pdo->prepare('DELETE FROM approvisionnement WHERE numeroAppro = ?')->execute([$id]);
+            $pdo->commit();
+        } catch (\Throwable $exception) {
+            $pdo->rollBack();
+            throw $exception;
+        }
     }
 
     // CATEGORIE ---------------------------------------------------------------
@@ -552,5 +708,33 @@ class DAO
         $row = $stmt->fetch();
 
         return $row && $row['total'] !== null ? (float) $row['total'] : 0.0;
+    }
+
+    public function getMonthlyRevenue(int $months = 6): array
+    {
+        $months = max(1, $months);
+
+        $stmt = $this->getPDO()->prepare(
+            'SELECT DATE_FORMAT(date, \'%Y-%m\') AS month, '
+            . 'SUM(lignecmd.prixVente * lignecmd.quantite) AS total '
+            . 'FROM commande '
+            . 'JOIN lignecmd ON lignecmd.numeroCmd = commande.numeroCmd '
+            . 'GROUP BY DATE_FORMAT(date, \'%Y-%m\') '
+            . 'ORDER BY DATE_FORMAT(date, \'%Y-%m\') DESC '
+            . 'LIMIT ?'
+        );
+
+        $stmt->bindValue(1, $months, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        $rows = array_reverse($stmt->fetchAll());
+
+        return array_map(
+            static fn (array $row): array => [
+                'month' => $row['month'],
+                'total' => $row['total'] !== null ? (float) $row['total'] : 0.0,
+            ],
+            $rows
+        );
     }
 }

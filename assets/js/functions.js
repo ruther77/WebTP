@@ -47,6 +47,7 @@ function FilterkeyWord() {
 
 
 
+const trashIconHref = window.trashIconHref || '../../assets/images/bootstrap-icons.svg#trash';
 const prods=document.getElementById("caisse-produits");
 const pr=document.getElementById("caisse-produits").outerHTML;
 
@@ -82,7 +83,7 @@ function addRow(r,l,p,q){
     '<td> <div style="font-size: 0.9rem;">'+p+' Dh</div>  <input type="hidden" name="cart['+i+'][1]" id="prix" value="'+p+'" min="1" class="form-control prix" style="font-size: 0.9rem;">  </td> '+
     '<td> <input onclick="total('+i+','+p+')" onchange="total('+i+','+p+')" type="number" name="cart['+i+'][2]" id="qnt'+i+'" value="1" min="1" max="'+q+'" class="form-control" style="font-size: 0.9rem;"> </td>'+
     '<td> <div id="total'+i+'" style="font-size: 0.9rem;">'+p+' Dh</div> </td>'+
-    '<td class="deleteIcon"> <svg onclick="deleteRow('+i+')" class="bi" width="1em" height="1em" fill="currentColor"> <use xlink:href="../../assets/images/bootstrap-icons.svg#trash"></use> </svg>'+
+    '<td class="deleteIcon"> <svg onclick="deleteRow('+i+')" class="bi" width="1em" height="1em" fill="currentColor"> <use xlink:href="'+trashIconHref+'"></use> </svg>'+
     '<input type="hidden" name="cart['+i+'][3]" value="'+q+'"> </td> </tr>';
     i++;
     n++;

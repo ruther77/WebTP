@@ -27,7 +27,7 @@ class Client extends Personne{
     }
 
     function getClient($cli){
-        $this->dao->getClient($cli);
+        return $this->dao->getClient($cli);
     }
 
     static function delete($cli){

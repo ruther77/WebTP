@@ -21,7 +21,7 @@ class Fournisseur extends Personne{
     }
 
     function getFournisseur($cli){
-        $this->dao->getFournisseur($cli);
+        return $this->dao->getFournisseur($cli);
     }
     
     static function delete($cli){
