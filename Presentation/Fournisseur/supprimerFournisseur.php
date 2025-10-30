@@ -1,13 +1,17 @@
-<?php 
-  session_start();
-  include_once('../../Metier/fournisseur.php');
-  if(!isset($_SESSION['login'])){
-    header("Location: http://localhost/Mini/");
-  }
+<?php
+require_once __DIR__ . '/../../config/app.php';
+require_once __DIR__ . '/../../Metier/fournisseur.php';
 
-    if(isset($_GET)){
-      Fournisseur::delete($_GET['id']);
-    }
+session_start();
 
-    header("Location: http://localhost/Mini/Presentation/Fournisseur/afficherFournisseurs.php");
-?>
+if (!isset($_SESSION['user'])) {
+    header('Location: ' . url_for('index.php'));
+    exit();
+}
+
+if (isset($_GET['id'])) {
+    Fournisseur::delete((int) $_GET['id']);
+}
+
+header('Location: ' . url_for('Presentation/Fournisseur/afficherFournisseurs.php'));
+exit();

@@ -1,6 +1,6 @@
 <?php
 
-require_once "approcom.php" ;
+require_once __DIR__ . '/approcom.php';
 
 class Commande extends ApproCom{
     
@@ -24,7 +24,8 @@ class Commande extends ApproCom{
     }
 
     public static function delete($id){
-        return $this->dao->deleteCommande($id);
+        $dao = new DAO();
+        $dao->deleteCommande($id);
     }
 
 }
